@@ -1,11 +1,11 @@
 {
   "extensionDescription": {
     "description": "Extension description",
-    "message": "Chrome extension boilerplate developed with Vite, React and Typescript"
+    "message": "Extracts conversation from ChatGPT and allows easy export to markdown"
   },
   "extensionName": {
     "description": "Extension name",
-    "message": "Chrome extension boilerplate"
+    "message": "ChatGPT2Markdown"
   },
   "toggleTheme": {
     "message": "Toggle theme"

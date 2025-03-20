@@ -1,6 +1,14 @@
 # ChatGPT 2 markdown extension
 To install just download the zip folder and `load unpacked` the extracted folder
 
+Zip folder is located in 
+
+`/install-extension/dist.zip`
+
+### Download it here
+
+[Download dist.zip](install-extension/dist.zip)
+
 
 # Development
 
@@ -11,4 +19,5 @@ pnpm i
 pnpm dev
 ```
 
+We used the template in the top of the repo to quickly get started with vite, react, and chrome extension patterns 
 
