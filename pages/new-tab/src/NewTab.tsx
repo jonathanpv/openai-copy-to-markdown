@@ -12,17 +12,13 @@ const NewTab = () => {
   const goGithubSite = () =>
     chrome.tabs.create({ url: 'https://github.com/Jonghakseo/chrome-extension-boilerplate-react-vite' });
 
-  console.log(t('hello', 'World'));
   return (
     <div className={`App ${isLight ? 'bg-slate-50' : 'bg-gray-800'}`}>
       <header className={`App-header ${isLight ? 'text-gray-900' : 'text-gray-100'}`}>
         <button onClick={goGithubSite}>
           <img src={chrome.runtime.getURL(logo)} className="App-logo" alt="logo" />
         </button>
-        <p>
-          Edit <code>pages/new-tab/src/NewTab.tsx</code>
-        </p>
-        <h6>The color of this paragraph is defined using SASS.</h6>
+        <h1 className="text-xl font-bold mb-4">This is a demo vite/react app</h1>
         <ToggleButton onClick={exampleThemeStorage.toggle}>{t('toggleTheme')}</ToggleButton>
       </header>
     </div>
