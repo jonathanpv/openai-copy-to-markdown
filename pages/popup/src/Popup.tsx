@@ -1,11 +1,11 @@
 import '@src/Popup.css';
 import { useStorage, withErrorBoundary, withSuspense } from '@extension/shared';
 import { exampleThemeStorage } from '@extension/storage';
-import { t } from '@extension/i18n';
-import { ToggleButton } from '@extension/ui';
-import { useState } from 'react';
+
+import { useState, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
 import TurndownService from 'turndown';
+import { Home, Search, Copy, Download, FileText, ArrowDown, File, Heading1Icon } from 'lucide-react';
 
 // Function to process syntax-highlighted HTML code blocks with enhanced logging
 function htmlToMarkdown(highlightedHTML: string) {
@@ -467,20 +467,8 @@ function htmlToMarkdown(highlightedHTML: string) {
   }
 }
 
-const demoMarkdown = `# Turndown Demo
-
-This is a demo of Turndown, a tool to convert HTML into Markdown.
-
-## Features
-- Convert HTML to Markdown
-- Easy to use API
-- Customizable options
-
-## Example Usage
-\`\`\`javascript
-var turndownService = new TurndownService()
-var markdown = turndownService.turndown('<h1>Hello world!</h1>')
-\`\`\`
+const demoMarkdown = `demo markdown here \`example code\`
+- you need to be on chatgpt.com so the extension extracts the things
 `;
 
 const notificationOptions = {
@@ -493,13 +481,10 @@ const notificationOptions = {
 const Popup = () => {
   const theme = useStorage(exampleThemeStorage);
   const isLight = theme === 'light';
-  const logo = isLight ? 'popup/logo_vertical.svg' : 'popup/logo_vertical_dark.svg';
   const [showMarkdown, setShowMarkdown] = useState(false);
   const [htmlContent, setHtmlContent] = useState('');
   const [markdownContent, setMarkdownContent] = useState('');
-
-  const goGithubSite = () =>
-    chrome.tabs.create({ url: 'https://github.com/Jonghakseo/chrome-extension-boilerplate-react-vite' });
+  const [currentScreen, setCurrentScreen] = useState('home');
 
   const extractConversation = async () => {
     console.log('%c--- EXTRACTION STARTED ---', 'background: #007bff; color: white; font-size: 14px; padding: 5px;');
@@ -654,38 +639,98 @@ const Popup = () => {
     });
   };
 
+  const downloadAsMarkdown = () => {
+    const blob = new Blob([markdownContent], { type: 'text/markdown' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'conversation.md';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    chrome.notifications.create({
+      ...notificationOptions,
+      message: 'Markdown file downloaded!',
+    });
+  };
+
+  const goBackToHome = () => {
+    setCurrentScreen('home');
+  };
+
+  const goPreview = () => {
+    setCurrentScreen('preview');
+  };
+
   return (
-    <div className={`App ${isLight ? 'bg-slate-50' : 'bg-gray-800'}`}>
-      <header className={`App-header ${isLight ? 'text-gray-900' : 'text-gray-100'}`}>
-        <button onClick={goGithubSite}>
-          <img src={chrome.runtime.getURL(logo)} className="App-logo" alt="logo" />
-        </button>
-        <h1 className="text-xl font-bold mb-4">HMKRRRRR is a vite/react app</h1>
-        <ToggleButton>{t('toggleTheme')}</ToggleButton>
+    <div className={`w-full h-full flex flex-col`}>
+      {/* Top Section */}
+      <div className="h-9 w-full max-h-9 p-2">
+        <h1 className={`text-lg font-bold text-center`}>ChatGPT2markdown</h1>
+      </div>
 
-        <div className="flex flex-col gap-4 mt-4 w-full max-w-xl">
-          <button
-            onClick={extractConversation}
-            className={`py-2 px-4 rounded shadow hover:scale-105 ${
-              isLight ? 'bg-white text-black border-black' : 'bg-black text-white border-white'
-            } border-2 font-bold`}>
-            Extract & Preview Conversation
-          </button>
+      {/* Main Content Section */}
+      <div className=" flex-1 relative overflow-clip">
+        <div className="absolute top-0 left-0 w-full h-full overflow-y-auto">
+          {currentScreen === 'home' && (
+            <div className="w-full h-full flex flex-col items-center justify-center gap-4">
+              <div className="flex flex-col items-center gap-2">
+                <p className="text-sm text-center text-muted-foreground">
+                  Extract and convert your ChatGPT conversations to markdown format
+                </p>
+              </div>
 
-          {showMarkdown && (
-            <div className={`p-4 rounded ${isLight ? 'bg-white' : 'bg-gray-700'}`}>
-              <ReactMarkdown>{markdownContent || demoMarkdown}</ReactMarkdown>
-              <button
-                onClick={copyAsMarkdown}
-                className={`mt-4 py-2 px-4 rounded shadow hover:scale-105 ${
-                  isLight ? 'bg-blue-500 text-white' : 'bg-blue-400 text-black'
-                } font-bold`}>
-                Copy as Markdown
-              </button>
+              <div className="flex flex-col gap-2 items-center">
+                <FileText className="w-8 h-8 text-muted-foreground" />
+                <ArrowDown className="w-4 h-4 text-muted-foreground animate-bounce" />
+                <Heading1Icon className="w-8 h-8 text-primary" />
+              </div>
+            </div>
+          )}
+
+          {currentScreen === 'preview' && (
+            <div className="w-full h-full relative p-6">
+              <div className="absolute top-2 right-2 flex gap-2 z-10">
+                <button
+                  onClick={copyAsMarkdown}
+                  className="p-2 rounded-full shadow hover:scale-110 transition-transform duration-200 group">
+                  <Copy className="h-3 w-3 group-active:scale-90 group-active:opacity-70 transition-all duration-200" />
+                  <span className="sr-only">Copy to clipboard</span>
+                </button>
+                <button
+                  onClick={downloadAsMarkdown}
+                  className="p-2 rounded-full shadow hover:scale-110 transition-transform duration-200">
+                  <Download className="h-3 w-3 group-active:scale-90 group-active:opacity-70 transition-all duration-200" />
+                  <span className="sr-only">Download as markdown</span>
+                </button>
+              </div>
+              <div className="h-full overflow-y-auto">
+                <div className="prose dark:prose-invert max-w-none text-left">
+                  <ReactMarkdown>{markdownContent || demoMarkdown}</ReactMarkdown>
+                </div>
+              </div>
             </div>
           )}
         </div>
-      </header>
+      </div>
+
+      {/* Bottom Navigation */}
+      <div className="flex h-14 items-center border border-top justify-around">
+        <button
+          onClick={goBackToHome}
+          className="flex flex-col items-center justify-center gap-1 text-sm font-medium text-muted-foreground hover:text-primary focus:text-primary">
+          <Home className="h-6 w-6" />
+        </button>
+        <button
+          onClick={() => {
+            extractConversation();
+            goPreview();
+          }}
+          className="flex flex-col items-center justify-center gap-1 text-sm font-medium text-muted-foreground hover:text-primary focus:text-primary">
+          <Search className="h-6 w-6" />
+        </button>
+      </div>
     </div>
   );
 };
